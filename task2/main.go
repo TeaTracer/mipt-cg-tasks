@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"image"
 	"image/color"
 	"image/png"
@@ -8,28 +9,31 @@ import (
 )
 
 func main() {
+	input_img_ptr := flag.String("i", "input.png", "Input PNG image.")
+	output_img_ptr := flag.String("o", "output.png", "Output PNG image.")
+	flag.Parse()
 
 	// load file
-	old_img_raw, _ := os.Open("img.png")
+	input_img_raw, _ := os.Open(*input_img_ptr)
 
 	// decode png image
-	old_img, _ := png.Decode(old_img_raw)
+	input_img, _ := png.Decode(input_img_raw)
 
 	// get image bounds
-	rectangle := old_img.Bounds()
+	rectangle := input_img.Bounds()
 
-	// create new file
-	new_img_raw, _ := os.Create("new.png")
+	// create output file
+	output_img_raw, _ := os.Create(*output_img_ptr)
 
-	// create new image
-	new_img := image.NewGray(rectangle)
+	// create output image
+	output_img := image.NewGray(rectangle)
 
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
-			c := color.GrayModel.Convert(old_img.At(x, y)).(color.Gray)
-			new_img.Set(x, y, c)
+			c := color.GrayModel.Convert(input_img.At(x, y)).(color.Gray)
+			output_img.Set(x, y, c)
 		}
 	}
-	png.Encode(new_img_raw, new_img)
+	png.Encode(output_img_raw, output_img)
 }
