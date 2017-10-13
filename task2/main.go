@@ -28,10 +28,12 @@ func main() {
 	// create output image
 	output_img := image.NewGray(rectangle)
 
+	// iterate over all points
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
-			c := color.GrayModel.Convert(input_img.At(x, y)).(color.Gray)
+			full_color := input_img.At(x, y)
+			c := color.GrayModel.Convert(full_color).(color.Gray)
 			output_img.Set(x, y, c)
 		}
 	}
