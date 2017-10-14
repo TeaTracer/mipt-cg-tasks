@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -20,14 +21,14 @@ func ApproximateThresholding(img *image.Gray, threshold uint8) (out *image.Gray)
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
-			grey_value := (*img).GrayAt(x, y)
-			if grey_value.Y <= threshold {
-				grey_value.Y = 0
+			greyValue := (*img).GrayAt(x, y)
+			if greyValue.Y <= threshold {
+				greyValue.Y = 0
 			} else {
-				grey_value.Y = 255
+				greyValue.Y = 255
 			}
 
-			out.SetGray(x, y, grey_value)
+			out.SetGray(x, y, greyValue)
 		}
 	}
 	return
@@ -46,16 +47,77 @@ func ApproximateRandomDithering(img *image.Gray) (out *image.Gray) {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 			var threshold uint8 = uint8(rand.Intn(256))
 
-			grey_value := (*img).GrayAt(x, y)
-			if grey_value.Y <= threshold {
-				grey_value.Y = 0
+			greyValue := (*img).GrayAt(x, y)
+			if greyValue.Y <= threshold {
+				greyValue.Y = 0
 			} else {
-				grey_value.Y = 255
+				greyValue.Y = 255
 			}
 
-			out.SetGray(x, y, grey_value)
+			out.SetGray(x, y, greyValue)
 		}
 	}
+	return
+}
+
+func ApproximateOrderedDithering(img *image.Gray, matrix [][]float64) (out *image.Gray) {
+
+	n := len(matrix)
+
+	// get image bounds
+	rectangle := (*img).Bounds()
+
+	// create output image
+	out = image.NewGray(rectangle)
+
+	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
+		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
+
+			greyValue := (*img).GrayAt(x, y)
+			// to [0, 1]
+			var value float64 = float64(greyValue.Y) / 255.0
+
+			// nearest color and other color
+			firstColor := 1.0
+			secondColor := 0.0
+
+			if value < 0.5 {
+				firstColor = 0.0
+				secondColor = 1.0
+			}
+
+			matrixValue := matrix[x%n][y%n]
+
+			var resultValue float64
+
+			if distance := math.Abs(firstColor - value); distance < matrixValue {
+				resultValue = firstColor
+			} else {
+				resultValue = secondColor
+			}
+
+			greyValue.Y = uint8(math.Floor(255 * resultValue))
+			out.SetGray(x, y, greyValue)
+		}
+	}
+	return
+}
+
+func makeOrderedMatrix() (matrix [][]float64) {
+
+	matrix = [][]float64{
+		{0, 8, 2, 10},
+		{12, 4, 14, 6},
+		{3, 11, 1, 9},
+		{15, 7, 13, 5}}
+
+	n := 4
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			matrix[i][j] = matrix[i][j] / 16
+		}
+	}
+
 	return
 }
 
@@ -71,8 +133,8 @@ func MakeImageGray(img *image.Image) (out *image.Gray) {
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
-			full_color := (*img).At(x, y)
-			c := color.GrayModel.Convert(full_color).(color.Gray)
+			fullColor := (*img).At(x, y)
+			c := color.GrayModel.Convert(fullColor).(color.Gray)
 			out.Set(x, y, c)
 		}
 	}
@@ -95,7 +157,12 @@ func main() {
 	output_img_raw, _ := os.Create(*output_img_ptr)
 
 	output_img := MakeImageGray(&input_img)
+
 	// output_img = ApproximateThresholding(output_img, 100)
-	output_img = ApproximateRandomDithering(output_img)
+
+	// output_img = ApproximateRandomDithering(output_img)
+
+	output_img = ApproximateOrderedDithering(output_img, makeOrderedMatrix())
+
 	png.Encode(output_img_raw, image.Image(output_img))
 }
