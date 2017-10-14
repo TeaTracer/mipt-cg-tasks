@@ -110,16 +110,16 @@ func LineErrorDiffusionDithering(img *image.Gray, threshold uint8) (out *image.G
 	// create output image
 	out = image.NewGray(rectangle)
 
-	var err uint8
+	var err int
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		err = 0
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
 			greyValue := (*img).GrayAt(x, y)
 
-			value := greyValue.Y
+			value := int(greyValue.Y)
 
-			if value <= threshold {
+			if value+err <= int(threshold) {
 				err = err + value
 				greyValue.Y = 0
 			} else {
@@ -142,7 +142,7 @@ func LineAlternationErrorDiffusionDithering(img *image.Gray, threshold uint8) (o
 
 	rand.Seed(time.Now().Unix())
 
-	var err uint8
+	var err int
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		err = 0
 		var new_x int
@@ -154,9 +154,9 @@ func LineAlternationErrorDiffusionDithering(img *image.Gray, threshold uint8) (o
 			}
 
 			greyValue := (*img).GrayAt(new_x, y)
-			value := greyValue.Y
+			value := int(greyValue.Y)
 
-			if value <= threshold {
+			if value+err <= int(threshold) {
 				err = err + value
 				greyValue.Y = 0
 			} else {
@@ -168,6 +168,89 @@ func LineAlternationErrorDiffusionDithering(img *image.Gray, threshold uint8) (o
 		}
 	}
 	return
+}
+
+func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray) {
+	// get image bounds
+	rectangle := (*img).Bounds()
+
+	// create output image
+	out = image.NewGray(rectangle)
+
+	rand.Seed(time.Now().Unix())
+
+	var err int
+	var nX, nY int
+	nX = rectangle.Max.X
+	nY = rectangle.Max.Y
+
+	for y := rectangle.Min.Y; y < nY; y++ {
+		err = 0
+		for x := rectangle.Min.X; x < nX; x++ {
+
+			greyValue := (*img).GrayAt(x, y)
+			value := int(getFloydSteinbergValue(img, x, y, nX-1, nY-1))
+
+			if value+err <= int(threshold) {
+				err = err + value
+				greyValue.Y = 0
+			} else {
+				err = err + value - 255
+				greyValue.Y = 255
+			}
+
+			out.SetGray(x, y, greyValue)
+		}
+	}
+	return
+}
+
+func getFSValue(ax, ay, by, cy uint8) (val uint8) {
+	var axi, ayi, byi, cyi int
+	axi = int(ax)
+	ayi = int(ay)
+	byi = int(by)
+	cyi = int(cy)
+
+	val2 := axi*7 + ayi*1 + byi*5 + cyi*3
+	val = uint8(math.Floor(float64(val2) / 16.0))
+	return
+}
+
+func getFloydSteinbergValue(img *image.Gray, x, y, maxX, maxY int) (value uint8) {
+	var ax, ay, by, cy uint8
+	var axx, axy, ayx, ayy, byx, byy, cyx, cyy int
+
+	axx = x + 1
+	axy = y
+	ayx = x + 1
+	ayy = y - 1
+	byx = x
+	byy = y - 1
+	cyx = x - 1
+	cyy = y - 1
+
+	if y == maxY {
+		ayy = y
+		byy = y
+		cyy = y
+	}
+
+	if x == maxX {
+		axx = x
+		ayx = x
+	}
+
+	if x == 0 {
+		cyx = x
+	}
+
+	ax = (*img).GrayAt(axx, axy).Y
+	ay = (*img).GrayAt(ayx, ayy).Y
+	by = (*img).GrayAt(byx, byy).Y
+	cy = (*img).GrayAt(cyx, cyy).Y
+	rs := getFSValue(ax, ay, by, cy)
+	return rs
 }
 
 func MakeOrderedMatrix() (matrix [][]float64) {
@@ -229,11 +312,13 @@ func main() {
 
 	// output_img = RandomDithering(output_img)
 
-	// output_img = OrderedDithering(output_img, MakeOrderedMatrix())
+	output_img = OrderedDithering(output_img, MakeOrderedMatrix())
 
 	// output_img = LineErrorDiffusionDithering(output_img, 100)
 
-	output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
+	// output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
+
+	// output_img = FloydSteinbergDithering(output_img, 150)
 
 	png.Encode(output_img_raw, image.Image(output_img))
 }
