@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func ApproximateThresholding(img *image.Gray, threshold uint8) (out *image.Gray) {
+func Thresholding(img *image.Gray, threshold uint8) (out *image.Gray) {
 	// get image bounds
 	rectangle := (*img).Bounds()
 
@@ -34,7 +34,7 @@ func ApproximateThresholding(img *image.Gray, threshold uint8) (out *image.Gray)
 	return
 }
 
-func ApproximateRandomDithering(img *image.Gray) (out *image.Gray) {
+func RandomDithering(img *image.Gray) (out *image.Gray) {
 	// get image bounds
 	rectangle := (*img).Bounds()
 
@@ -60,7 +60,7 @@ func ApproximateRandomDithering(img *image.Gray) (out *image.Gray) {
 	return
 }
 
-func ApproximateOrderedDithering(img *image.Gray, matrix [][]float64) (out *image.Gray) {
+func OrderedDithering(img *image.Gray, matrix [][]float64) (out *image.Gray) {
 
 	n := len(matrix)
 
@@ -103,7 +103,7 @@ func ApproximateOrderedDithering(img *image.Gray, matrix [][]float64) (out *imag
 	return
 }
 
-func makeOrderedMatrix() (matrix [][]float64) {
+func MakeOrderedMatrix() (matrix [][]float64) {
 
 	matrix = [][]float64{
 		{0, 8, 2, 10},
@@ -158,11 +158,11 @@ func main() {
 
 	output_img := MakeImageGray(&input_img)
 
-	// output_img = ApproximateThresholding(output_img, 100)
+	// output_img = Thresholding(output_img, 100)
 
-	// output_img = ApproximateRandomDithering(output_img)
+	// output_img = RandomDithering(output_img)
 
-	output_img = ApproximateOrderedDithering(output_img, makeOrderedMatrix())
+	output_img = OrderedDithering(output_img, MakeOrderedMatrix())
 
 	png.Encode(output_img_raw, image.Image(output_img))
 }
