@@ -286,7 +286,8 @@ func MakeImageGray(img *image.Image) (out *image.Gray) {
 func main() {
 	input_img_ptr := flag.String("i", "input.png", "Input PNG image.")
 	output_img_ptr := flag.String("o", "output.png", "Output PNG image.")
-	// approximation_type := flag.String("a", "default", "Approximation type (default='nearest')")
+	approximation_type := flag.String("a", "threshold",
+		"Approximation type ['threshold', 'random', 'ordered', 'diffusion', 'floyd'] (default='threshold')")
 	flag.Parse()
 
 	// load file
@@ -300,17 +301,21 @@ func main() {
 
 	output_img := MakeImageGray(&input_img)
 
-	// output_img = Thresholding(output_img, 100)
-
-	// output_img = RandomDithering(output_img)
-
-	output_img = OrderedDithering(output_img, MakeOrderedMatrix())
-
-	// output_img = LineErrorDiffusionDithering(output_img, 100)
-
-	// output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
-
-	// output_img = FloydSteinbergDithering(output_img, 150)
+	switch *approximation_type {
+	case "threshold":
+		output_img = Thresholding(output_img, 100)
+	case "random":
+		output_img = RandomDithering(output_img)
+	case "ordered":
+		output_img = OrderedDithering(output_img, MakeOrderedMatrix())
+	case "diffusion":
+		output_img = LineErrorDiffusionDithering(output_img, 100)
+		// output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
+	case "floyd":
+		output_img = FloydSteinbergDithering(output_img, 150)
+	default:
+		output_img = Thresholding(output_img, 100)
+	}
 
 	png.Encode(output_img_raw, image.Image(output_img))
 }
