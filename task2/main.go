@@ -103,6 +103,38 @@ func OrderedDithering(img *image.Gray, matrix [][]float64) (out *image.Gray) {
 	return
 }
 
+func LineErrorDiffusionDithering(img *image.Gray, threshold uint8) (out *image.Gray) {
+	// get image bounds
+	rectangle := (*img).Bounds()
+
+	// create output image
+	out = image.NewGray(rectangle)
+
+	rand.Seed(time.Now().Unix())
+
+	var error uint8
+	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
+		error = 0
+		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
+
+			greyValue := (*img).GrayAt(x, y)
+
+			value := greyValue.Y
+
+			if value <= threshold {
+				error = error + value
+				greyValue.Y = 0
+			} else {
+				error = error + value - 255
+				greyValue.Y = 255
+			}
+
+			out.SetGray(x, y, greyValue)
+		}
+	}
+	return
+}
+
 func MakeOrderedMatrix() (matrix [][]float64) {
 
 	matrix = [][]float64{
@@ -162,7 +194,9 @@ func main() {
 
 	// output_img = RandomDithering(output_img)
 
-	output_img = OrderedDithering(output_img, MakeOrderedMatrix())
+	// output_img = OrderedDithering(output_img, MakeOrderedMatrix())
+
+	output_img = LineErrorDiffusionDithering(output_img, 100)
 
 	png.Encode(output_img_raw, image.Image(output_img))
 }
