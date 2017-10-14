@@ -74,26 +74,18 @@ func OrderedDithering(img *image.Gray, matrix [][]float64) (out *image.Gray) {
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
 			greyValue := (*img).GrayAt(x, y)
+
 			// to [0, 1]
 			var value float64 = float64(greyValue.Y) / 255.0
-
-			// nearest color and other color
-			firstColor := 1.0
-			secondColor := 0.0
-
-			if value < 0.5 {
-				firstColor = 0.0
-				secondColor = 1.0
-			}
 
 			matrixValue := matrix[x%n][y%n]
 
 			var resultValue float64
 
-			if distance := math.Abs(firstColor - value); distance < matrixValue {
-				resultValue = firstColor
+			if value <= matrixValue {
+				resultValue = 0.0
 			} else {
-				resultValue = secondColor
+				resultValue = 1.0
 			}
 
 			greyValue.Y = uint8(math.Floor(255 * resultValue))
