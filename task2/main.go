@@ -110,11 +110,9 @@ func LineErrorDiffusionDithering(img *image.Gray, threshold uint8) (out *image.G
 	// create output image
 	out = image.NewGray(rectangle)
 
-	rand.Seed(time.Now().Unix())
-
-	var error uint8
+	var err uint8
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
-		error = 0
+		err = 0
 		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
 
 			greyValue := (*img).GrayAt(x, y)
@@ -122,14 +120,51 @@ func LineErrorDiffusionDithering(img *image.Gray, threshold uint8) (out *image.G
 			value := greyValue.Y
 
 			if value <= threshold {
-				error = error + value
+				err = err + value
 				greyValue.Y = 0
 			} else {
-				error = error + value - 255
+				err = err + value - 255
 				greyValue.Y = 255
 			}
 
 			out.SetGray(x, y, greyValue)
+		}
+	}
+	return
+}
+
+func LineAlternationErrorDiffusionDithering(img *image.Gray, threshold uint8) (out *image.Gray) {
+	// get image bounds
+	rectangle := (*img).Bounds()
+
+	// create output image
+	out = image.NewGray(rectangle)
+
+	rand.Seed(time.Now().Unix())
+
+	var err uint8
+	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
+		err = 0
+		var new_x int
+		for x := rectangle.Min.X; x < rectangle.Max.X; x++ {
+			if y%2 == 1 {
+				new_x = rectangle.Max.X - (x - rectangle.Min.X)
+			} else {
+				new_x = x
+			}
+
+			greyValue := (*img).GrayAt(new_x, y)
+			value := greyValue.Y
+
+			if value <= threshold {
+				err = err + value
+				greyValue.Y = 0
+			} else {
+				err = err + value - 255
+				greyValue.Y = 255
+			}
+
+			out.SetGray(new_x, y, greyValue)
 		}
 	}
 	return
@@ -196,7 +231,9 @@ func main() {
 
 	// output_img = OrderedDithering(output_img, MakeOrderedMatrix())
 
-	output_img = LineErrorDiffusionDithering(output_img, 100)
+	// output_img = LineErrorDiffusionDithering(output_img, 100)
+
+	output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
 
 	png.Encode(output_img_raw, image.Image(output_img))
 }
