@@ -8,6 +8,8 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path"
+	"sync"
 	"time"
 )
 
@@ -299,25 +301,21 @@ func MakeImageGray(img *image.Image) (out *image.Gray) {
 	return
 }
 
-func main() {
-	input_img_ptr := flag.String("i", "input.png", "Input PNG image.")
-	output_img_ptr := flag.String("o", "output.png", "Output PNG image.")
-	approximation_type := flag.String("a", "threshold",
-		"Approximation type ['threshold', 'random', 'ordered', 'diffusion', 'floyd'] (default='threshold')")
-	flag.Parse()
+func process_image(input, output, approximation_type string, wg *sync.WaitGroup) {
+	defer (*wg).Done()
 
 	// load file
-	input_img_raw, _ := os.Open(*input_img_ptr)
+	input_img_raw, _ := os.Open(input)
 
 	// decode png image
 	input_img, _ := png.Decode(input_img_raw)
 
 	// create output file
-	output_img_raw, _ := os.Create(*output_img_ptr)
+	output_img_raw, _ := os.Create(output)
 
 	output_img := MakeImageGray(&input_img)
 
-	switch *approximation_type {
+	switch approximation_type {
 	case "threshold":
 		output_img = Thresholding(output_img, 100)
 	case "random":
@@ -334,4 +332,32 @@ func main() {
 	}
 
 	png.Encode(output_img_raw, image.Image(output_img))
+
+}
+
+func main() {
+	input_img_ptr := flag.String("i", "input.png", "Input PNG image.")
+	output_img_ptr := flag.String("o", "output.png", "Output PNG image.")
+	approximation_type := flag.String("a", "threshold",
+		"Approximation type ['threshold', 'random', 'ordered', 'diffusion', 'floyd'] (default='threshold')")
+	run := flag.Bool("run", false, "Start processing image. Apply all algorithms.")
+	flag.Parse()
+	approximation_types := [...]string{"threshold", "random", "ordered", "diffusion", "floyd"}
+
+	var wg sync.WaitGroup
+
+	if *run == true {
+		for _, approximation := range approximation_types {
+			wg.Add(1)
+			_, input_file := path.Split(*input_img_ptr)
+			out_img := "results/" + input_file[0:len(input_file)-4] + "_" + approximation + ".png"
+			go process_image(*input_img_ptr, out_img, approximation, &wg)
+		}
+	} else {
+		wg.Add(1)
+		go process_image(*input_img_ptr, *output_img_ptr, *approximation_type, &wg)
+
+	}
+	wg.Wait()
+
 }
