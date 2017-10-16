@@ -168,12 +168,19 @@ func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray)
 	out = image.NewGray(rectangle)
 
 	var err uint8
-	var errIsPositive bool
+	var moveRight, errIsPositive bool
 	var nX, nY int
 	nX = rectangle.Max.X
 	nY = rectangle.Max.Y
 
 	for y := rectangle.Min.Y; y < nY; y++ {
+
+		if y%2 == 0 {
+			moveRight = true
+		} else {
+			moveRight = false
+		}
+
 		for x := rectangle.Min.X; x < nX; x++ {
 
 			greyValue := (*img).GrayAt(x, y)
@@ -183,12 +190,12 @@ func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray)
 				greyValue.Y = 0
 				err = value
 				errIsPositive = true
-				applyFSError(img, x, y, nX-1, nY-1, err, errIsPositive)
+				applyFSError(img, x, y, nX-1, nY-1, err, moveRight, errIsPositive)
 			} else {
 				greyValue.Y = 255
 				err = 255 - value
 				errIsPositive = false
-				applyFSError(img, x, y, nX-1, nY-1, err, errIsPositive)
+				applyFSError(img, x, y, nX-1, nY-1, err, moveRight, errIsPositive)
 			}
 
 			out.SetGray(x, y, greyValue)
@@ -218,41 +225,39 @@ func cropValue(value, err uint8, errIsPositive bool) (new_value uint8) {
 	return
 }
 
-func applyFSError(img *image.Gray, x, y, maxX, maxY int, err uint8, errIsPositive bool) {
+func applyFSError(img *image.Gray, x, y, maxX, maxY int, err uint8, moveRight, errIsPositive bool) {
 	if x == 0 || x == maxX || y == maxY {
 		return
 	}
 
 	var value, applied_err, new_value uint8
 	var greyValue color.Gray
+	var coords [4][2]int
+	var coefs [4]float64
+	var coef float64
+	var xx, yy int
 
-	greyValue = (*img).GrayAt(x+1, y)
-	value = greyValue.Y
-	applied_err = uint8(math.Floor(float64(err) * 7.0 / 16.0))
-	new_value = cropValue(value, applied_err, errIsPositive)
-	greyValue.Y = new_value
-	(*img).SetGray(x+1, y, greyValue)
+	if moveRight == true {
+		coords = [4][2]int{{x + 1, y}, {x + 1, y + 1}, {x, y + 1}, {x - 1, y + 1}}
+	} else {
+		coords = [4][2]int{{x - 1, y}, {x - 1, y + 1}, {x, y + 1}, {x + 1, y + 1}}
+	}
 
-	greyValue = (*img).GrayAt(x+1, y+1)
-	value = greyValue.Y
-	applied_err = uint8(math.Floor(float64(err) * 1.0 / 16.0))
-	new_value = cropValue(value, applied_err, errIsPositive)
-	greyValue.Y = new_value
-	(*img).SetGray(x+1, y+1, greyValue)
+	coefs = [4]float64{7.0 / 16.0, 1.0 / 16.0, 5.0 / 16.0, 3.0 / 16.0}
 
-	greyValue = (*img).GrayAt(x, y+1)
-	value = greyValue.Y
-	applied_err = uint8(math.Floor(float64(err) * 5.0 / 16.0))
-	new_value = cropValue(value, applied_err, errIsPositive)
-	greyValue.Y = new_value
-	(*img).SetGray(x, y+1, greyValue)
+	for i, coord := range coords {
+		xx = coord[0]
+		yy = coord[1]
+		coef = coefs[i]
 
-	greyValue = (*img).GrayAt(x-1, y+1)
-	value = greyValue.Y
-	applied_err = uint8(math.Floor(float64(err) * 3.0 / 16.0))
-	new_value = cropValue(value, applied_err, errIsPositive)
-	greyValue.Y = new_value
-	(*img).SetGray(x-1, y+1, greyValue)
+		greyValue = (*img).GrayAt(xx, yy)
+		value = greyValue.Y
+		applied_err = uint8(math.Floor(float64(err) * coef))
+		new_value = cropValue(value, applied_err, errIsPositive)
+		greyValue.Y = new_value
+		(*img).SetGray(xx, yy, greyValue)
+
+	}
 }
 
 func MakeOrderedMatrix() (matrix [][]float64) {
