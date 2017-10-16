@@ -17,7 +17,7 @@
 
 | Effect type | Image |
 | :--- | :---: |
-| original | ![woman](results/woman.png) |
+| original | ![woman](resources/woman.png) |
 | threshold | ![woman](results/woman_threshold.png) |
 | random | ![woman](results/woman_random.png) |
 | ordered | ![woman](results/woman_ordered.png) |
@@ -28,7 +28,7 @@
 
 | Effect type | Image |
 | :--- | :---: |
-| original | ![gradient-h](results/gradient-h.png) |
+| original | ![gradient-h](resources/gradient-h.png) |
 | threshold | ![gradient-h](results/gradient-h_threshold.png) |
 | random | ![gradient-h](results/gradient-h_random.png) |
 | ordered | ![gradient-h](results/gradient-h_ordered.png) |
@@ -39,7 +39,7 @@
 
 | Effect type | Image |
 | :--- | :---: |
-| original | ![kodim08](results/kodim08.png) |
+| original | ![kodim08](resources/kodim08.png) |
 | threshold | ![kodim08](results/kodim08_threshold.png) |
 | random | ![kodim08](results/kodim08_random.png) |
 | ordered | ![kodim08](results/kodim08_ordered.png) |
@@ -50,7 +50,7 @@
 
 | Effect type | Image |
 | :--- | :---: |
-| original | ![kodim15](results/kodim15.png) |
+| original | ![kodim15](resources/kodim15.png) |
 | threshold | ![kodim15](results/kodim15_threshold.png) |
 | random | ![kodim15](results/kodim15_random.png) |
 | ordered | ![kodim15](results/kodim15_ordered.png) |
