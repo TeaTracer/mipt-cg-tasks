@@ -4,23 +4,14 @@
 
 ## David
 
-* original
-![david](resources/david.png)
-
-* threshold
-![david](results/david_threshold.png)
-
-* random
-![david](results/david_random.png)
-
-* ordered
-![david](results/david_ordered.png)
-
-* error diffusion
-![david](results/david_diffusion.png)
-
-* floyd
-![david](results/david_floyd.png)
+| Effect type | Image                         |
+| :---        | :---:                         |
+| original    | ![david](resources/david.png) |
+| threshold   | ![david](results/david_threshold.png) |
+| random      | ![david](results/david_random.png) |
+| ordered     | ![david](results/david_ordered.png) |
+| error diffusion | ![david](results/david_diffusion.png) |
+| floyd       | ![david](results/david_floyd.png) |
 
 ## Woman
 
