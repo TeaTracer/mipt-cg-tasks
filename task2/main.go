@@ -180,6 +180,7 @@ func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray)
 		} else {
 			moveRight = false
 		}
+		err = 0
 
 		for x := rectangle.Min.X; x < nX; x++ {
 
