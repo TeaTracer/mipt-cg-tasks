@@ -132,8 +132,6 @@ func LineAlternationErrorDiffusionDithering(img *image.Gray, threshold uint8) (o
 	// create output image
 	out = image.NewGray(rectangle)
 
-	rand.Seed(time.Now().Unix())
-
 	var err int
 	for y := rectangle.Min.Y; y < rectangle.Max.Y; y++ {
 		err = 0
@@ -169,26 +167,28 @@ func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray)
 	// create output image
 	out = image.NewGray(rectangle)
 
-	rand.Seed(time.Now().Unix())
-
-	var err int
+	var err uint8
+	var errIsPositive bool
 	var nX, nY int
 	nX = rectangle.Max.X
 	nY = rectangle.Max.Y
 
 	for y := rectangle.Min.Y; y < nY; y++ {
-		err = 0
 		for x := rectangle.Min.X; x < nX; x++ {
 
 			greyValue := (*img).GrayAt(x, y)
-			value := int(getFloydSteinbergValue(img, x, y, nX-1, nY-1))
+			value := greyValue.Y
 
-			if value+err <= int(threshold) {
-				err = err + value
+			if value <= threshold {
 				greyValue.Y = 0
+				err = value
+				errIsPositive = true
+				applyFSError(img, x, y, nX-1, nY-1, err, errIsPositive)
 			} else {
-				err = err + value - 255
 				greyValue.Y = 255
+				err = 255 - value
+				errIsPositive = false
+				applyFSError(img, x, y, nX-1, nY-1, err, errIsPositive)
 			}
 
 			out.SetGray(x, y, greyValue)
@@ -197,52 +197,62 @@ func FloydSteinbergDithering(img *image.Gray, threshold uint8) (out *image.Gray)
 	return
 }
 
-func getFSValue(ax, ay, by, cy uint8) (val uint8) {
-	var axi, ayi, byi, cyi int
-	axi = int(ax)
-	ayi = int(ay)
-	byi = int(by)
-	cyi = int(cy)
+func cropValue(value, err uint8, errIsPositive bool) (new_value uint8) {
+	var new_value_int int
 
-	val2 := axi*7 + ayi*1 + byi*5 + cyi*3
-	val = uint8(math.Floor(float64(val2) / 16.0))
+	if errIsPositive == true {
+		new_value_int = int(value + err)
+		if new_value_int > 255 {
+			new_value = 255
+		} else {
+			new_value = uint8(new_value_int)
+		}
+	} else {
+		new_value_int = int(value - err)
+		if new_value_int < 0 {
+			new_value = 0
+		} else {
+			new_value = uint8(new_value_int)
+		}
+	}
 	return
 }
 
-func getFloydSteinbergValue(img *image.Gray, x, y, maxX, maxY int) (value uint8) {
-	var ax, ay, by, cy uint8
-	var axx, axy, ayx, ayy, byx, byy, cyx, cyy int
-
-	axx = x + 1
-	axy = y
-	ayx = x + 1
-	ayy = y - 1
-	byx = x
-	byy = y - 1
-	cyx = x - 1
-	cyy = y - 1
-
-	if y == maxY {
-		ayy = y
-		byy = y
-		cyy = y
+func applyFSError(img *image.Gray, x, y, maxX, maxY int, err uint8, errIsPositive bool) {
+	if x == 0 || x == maxX || y == maxY {
+		return
 	}
 
-	if x == maxX {
-		axx = x
-		ayx = x
-	}
+	var value, applied_err, new_value uint8
+	var greyValue color.Gray
 
-	if x == 0 {
-		cyx = x
-	}
+	greyValue = (*img).GrayAt(x+1, y)
+	value = greyValue.Y
+	applied_err = uint8(math.Floor(float64(err) * 7.0 / 16.0))
+	new_value = cropValue(value, applied_err, errIsPositive)
+	greyValue.Y = new_value
+	(*img).SetGray(x+1, y, greyValue)
 
-	ax = (*img).GrayAt(axx, axy).Y
-	ay = (*img).GrayAt(ayx, ayy).Y
-	by = (*img).GrayAt(byx, byy).Y
-	cy = (*img).GrayAt(cyx, cyy).Y
-	rs := getFSValue(ax, ay, by, cy)
-	return rs
+	greyValue = (*img).GrayAt(x+1, y+1)
+	value = greyValue.Y
+	applied_err = uint8(math.Floor(float64(err) * 1.0 / 16.0))
+	new_value = cropValue(value, applied_err, errIsPositive)
+	greyValue.Y = new_value
+	(*img).SetGray(x+1, y+1, greyValue)
+
+	greyValue = (*img).GrayAt(x, y+1)
+	value = greyValue.Y
+	applied_err = uint8(math.Floor(float64(err) * 5.0 / 16.0))
+	new_value = cropValue(value, applied_err, errIsPositive)
+	greyValue.Y = new_value
+	(*img).SetGray(x, y+1, greyValue)
+
+	greyValue = (*img).GrayAt(x-1, y+1)
+	value = greyValue.Y
+	applied_err = uint8(math.Floor(float64(err) * 3.0 / 16.0))
+	new_value = cropValue(value, applied_err, errIsPositive)
+	greyValue.Y = new_value
+	(*img).SetGray(x-1, y+1, greyValue)
 }
 
 func MakeOrderedMatrix() (matrix [][]float64) {
@@ -312,7 +322,7 @@ func main() {
 		output_img = LineErrorDiffusionDithering(output_img, 100)
 		// output_img = LineAlternationErrorDiffusionDithering(output_img, 100)
 	case "floyd":
-		output_img = FloydSteinbergDithering(output_img, 150)
+		output_img = FloydSteinbergDithering(output_img, 100)
 	default:
 		output_img = Thresholding(output_img, 100)
 	}
