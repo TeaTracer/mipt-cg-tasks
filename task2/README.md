@@ -35,6 +35,61 @@
 | error diffusion | ![gradient-h](results/gradient-h_diffusion.png) |
 | floyd | ![gradient-h](results/gradient-h_floyd.png) |
 
+## Black
+
+| Effect type | Image |
+| :--- | :---: |
+| original | ![black](resources/black.png) |
+| threshold | ![black](results/black_threshold.png) |
+| random | ![black](results/black_random.png) |
+| ordered | ![black](results/black_ordered.png) |
+| error diffusion | ![black](results/black_diffusion.png) |
+| floyd | ![black](results/black_floyd.png) |
+
+## White
+
+| Effect type | Image |
+| :--- | :---: |
+| original | ![white](resources/white.png) |
+| threshold | ![white](results/white_threshold.png) |
+| random | ![white](results/white_random.png) |
+| ordered | ![white](results/white_ordered.png) |
+| error diffusion | ![white](results/white_diffusion.png) |
+| floyd | ![white](results/white_floyd.png) |
+
+## Gray
+
+| Effect type | Image |
+| :--- | :---: |
+| original | ![gray](resources/gray.png) |
+| threshold | ![gray](results/gray_threshold.png) |
+| random | ![gray](results/gray_random.png) |
+| ordered | ![gray](results/gray_ordered.png) |
+| error diffusion | ![gray](results/gray_diffusion.png) |
+| floyd | ![gray](results/gray_floyd.png) |
+
+## Zebra
+
+| Effect type | Image |
+| :--- | :---: |
+| original | ![zebra](resources/zebra.png) |
+| threshold | ![zebra](results/zebra_threshold.png) |
+| random | ![zebra](results/zebra_random.png) |
+| ordered | ![zebra](results/zebra_ordered.png) |
+| error diffusion | ![zebra](results/zebra_diffusion.png) |
+| floyd | ![zebra](results/zebra_floyd.png) |
+
+## Zebra vertical
+
+| Effect type | Image |
+| :--- | :---: |
+| original | ![zebravertical](resources/zebravertical.png) |
+| threshold | ![zebravertical](results/zebravertical_threshold.png) |
+| random | ![zebravertical](results/zebravertical_random.png) |
+| ordered | ![zebravertical](results/zebravertical_ordered.png) |
+| error diffusion | ![zebravertical](results/zebravertical_diffusion.png) |
+| floyd | ![zebravertical](results/zebravertical_floyd.png) |
+
 ## Kodim08
 
 | Effect type | Image |
